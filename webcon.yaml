@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: devproject
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      apptype: web
+      env: dev
+  template:
+    metadata:
+      name: webtemp
+      labels:
+        apptype: web
+        env: dev
+    spec:
+      containers:
+        - image: ramasamy123/addressbook:v1
+          name: webcon
+          imagePullPolicy: Always
+          ports:
+            - name: tomcat
+              containerPort: 8080
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: websvc
+  namespace: devproject
+spec:
+  ports:
+    - name: tomcat
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+  selector:
+    apptype: web
+    env: dev
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: webingress
+  namespace: devproject
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: "ab25712f9f6e349369daff6044044ba3-598783861.ap-south-1.elb.amazonaws.com"
+      http:
+        paths:
+          - path: "/"
+            pathType: "Prefix"
+            backend:
+              service:
+                name: websvc
+                port:
+                  number: 80
+
+
+
